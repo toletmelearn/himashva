@@ -355,6 +355,38 @@
         </div>
     </div>
 
+    @if ($product->videos->isNotEmpty())
+    <section class="mt-10" data-aos="fade-up">
+        <h2 class="font-display text-xl text-brand-900 mb-4">Watch Our Videos</h2>
+        <div class="flex gap-4 overflow-x-auto pb-4">
+            @foreach ($product->videos as $video)
+            <a href="{{ $video->video_url }}" target="_blank" rel="noopener noreferrer" class="flex-shrink-0 w-64 group">
+                <div style="position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; background: #1a1a1a;">
+                    <img src="{{ $video->thumbnail }}" alt="{{ $video->title ?? $product->name }}"
+                         style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;"
+                         class="group-hover:scale-105">
+                    <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); transition: background 0.3s;"
+                         class="group-hover:bg-black/40">
+                        <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <svg viewBox="0 0 24 24" fill="#2C2018" style="width: 20px; height: 20px; margin-left: 2px;">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div style="position: absolute; top: 8px; right: 8px; padding: 3px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 600; color: white;
+                        {{ $video->platform === 'youtube' ? 'background: #FF0000;' : 'background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);' }}">
+                        {{ $video->platform === 'youtube' ? '▶ YouTube' : '📸 Instagram' }}
+                    </div>
+                </div>
+                @if ($video->title)
+                <p class="text-sm text-brand-700 mt-2 font-medium group-hover:text-brand-900 transition">{{ $video->title }}</p>
+                @endif
+            </a>
+            @endforeach
+        </div>
+    </section>
+    @endif
+
     <x-recently-viewed :exclude-product-id="$product->id" />
 
     @if ($frequentlyBought->isNotEmpty())
