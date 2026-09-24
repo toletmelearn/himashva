@@ -2,6 +2,13 @@
 <x-slot:title>{{ $product->meta_title ?: $product->name }} | Himashva</x-slot:title>
 <x-slot:description>{{ $product->meta_description ?: $product->short_description }}</x-slot:description>
 
+<x-json-ld type="product" :data="['product' => $product]" />
+<x-json-ld type="breadcrumb" :data="['items' => [
+    ['name' => 'Home', 'url' => url('/')],
+    ['name' => $product->category?->name ?? 'Shop', 'url' => $product->category ? route('category.show', $product->category->slug) : route('shop')],
+    ['name' => $product->name, 'url' => route('product.show', $product->slug)],
+]]" />
+
 <div class="max-w-7xl mx-auto px-4 py-8">
     <nav class="text-xs text-brand-500 mb-6">
         <a href="{{ route('home') }}" class="hover:underline">Home</a> /

@@ -1,6 +1,11 @@
 <x-layouts.app>
 <x-slot:title>{{ $title }} | Himashva</x-slot:title>
 
+<x-json-ld type="breadcrumb" :data="['items' => [
+    ['name' => 'Home', 'url' => url('/')],
+    ['name' => 'Shop', 'url' => route('shop')],
+]]" />
+
 <div class="max-w-7xl mx-auto px-4 py-8">
     <nav class="text-xs text-brand-500 mb-4">
         <a href="{{ route('home') }}" class="hover:underline">Home</a> /

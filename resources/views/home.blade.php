@@ -1,6 +1,8 @@
 <x-layouts.app>
 <x-slot:title>{{ settings('site_name', 'Himashva') }} — {{ settings('tagline') }}</x-slot:title>
 
+<x-json-ld type="organization" />
+
 @if ($heroBanners->count())
 <section x-data="{ i: 0, count: {{ $heroBanners->count() }} }" x-init="setInterval(() => i = (i + 1) % count, 5000)" class="hero-mock">
     <div class="hero-bg-pattern"></div>
