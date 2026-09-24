@@ -54,6 +54,7 @@ class ManageSiteSettings extends Page implements HasForms
                                 Forms\Components\TextInput::make('social_pinterest'),
                                 Forms\Components\TextInput::make('social_youtube'),
                                 Forms\Components\TextInput::make('social_twitter'),
+                                Forms\Components\TextInput::make('social_linkedin'),
                             ]),
                         Forms\Components\Tabs\Tab::make('Payment')
                             ->schema([
@@ -117,7 +118,7 @@ class ManageSiteSettings extends Page implements HasForms
             'contact_email' => 'general', 'contact_phone' => 'general', 'address' => 'general',
             'whatsapp_number' => 'general', 'announcement_text' => 'general',
             'social_instagram' => 'social', 'social_facebook' => 'social', 'social_pinterest' => 'social',
-            'social_youtube' => 'social', 'social_twitter' => 'social',
+            'social_youtube' => 'social', 'social_twitter' => 'social', 'social_linkedin' => 'social',
             'razorpay_key_id' => 'payment', 'razorpay_key_secret' => 'payment', 'cod_enabled' => 'payment', 'upi_enabled' => 'payment',
             'free_shipping_threshold' => 'shipping', 'flat_shipping_rate' => 'shipping', 'min_order_amount' => 'shipping',
             'shiprocket_email' => 'shipping', 'shiprocket_password' => 'shipping',
