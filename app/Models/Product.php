@@ -76,6 +76,11 @@ class Product extends Model
             ->orderBy('sort_order');
     }
 
+    public function videos(): HasMany
+    {
+        return $this->hasMany(ProductVideo::class)->where('is_active', true)->orderBy('sort_order');
+    }
+
     public function primaryImage(): HasMany
     {
         return $this->hasMany(ProductImage::class)->where('is_primary', true);
