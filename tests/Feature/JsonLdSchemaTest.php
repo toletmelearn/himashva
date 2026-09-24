@@ -18,6 +18,7 @@ class JsonLdSchemaTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('application/ld+json', false);
+        $response->assertSee('"@context": "https://schema.org"', false);
         $response->assertSee('"@type": "Product"', false);
         $response->assertSee('"@type": "BreadcrumbList"', false);
     }
@@ -27,6 +28,7 @@ class JsonLdSchemaTest extends TestCase
         $response = $this->get(route('home'));
 
         $response->assertOk();
+        $response->assertSee('"@context": "https://schema.org"', false);
         $response->assertSee('"@type": "Organization"', false);
     }
 
