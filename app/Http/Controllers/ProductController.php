@@ -13,7 +13,7 @@ class ProductController extends Controller
 {
     public function show(Request $request, string $slug, RecommendationService $recommendations)
     {
-        $product = Product::visible()->with(['images', 'variants', 'attributes_', 'category', 'sizeGuides'])
+        $product = Product::visible()->with(['images', 'variants', 'attributes_', 'category', 'sizeGuides', 'videos'])
             ->where('slug', $slug)
             ->firstOrFail();
 
