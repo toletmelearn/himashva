@@ -1,0 +1,20 @@
+{
+    "mcpServers": {
+        "code-review-graph": {
+            "command": "uvx",
+            "args": [
+                "code-review-graph",
+                "serve"
+            ],
+            "cwd": "C:\\xampp\\htdocs\\himashva",
+            "type": "stdio"
+        },
+        "laravel-boost": {
+            "command": "php",
+            "args": [
+                "artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}
