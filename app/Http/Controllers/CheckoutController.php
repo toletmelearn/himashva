@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\InsufficientStockException;
 use App\Models\AbandonedCart;
 use App\Models\Address;
 use App\Models\Order;
@@ -42,9 +43,7 @@ class CheckoutController extends Controller
             $discount = $valid ? $this->coupons->calculateDiscount($coupon, $subtotal) : 0;
         }
 
-        $shippingThreshold = (float) settings('free_shipping_threshold', 999);
-        $flatRate = (float) settings('flat_shipping_rate', 49);
-        $shipping = ($subtotal - $discount) >= $shippingThreshold ? 0 : $flatRate;
+        $shipping = $this->orders->calculateShipping($subtotal, $discount);
         $tax = $this->orders->calculateTax($items, $subtotal, $discount);
         $total = $subtotal - $discount + $shipping + $tax;
 
@@ -95,9 +94,11 @@ class CheckoutController extends Controller
             'postal_code' => 'required|string|max:10',
             'country' => 'nullable|string',
             'payment_method' => ['required', Rule::in($activeGatewayNames)],
+            'customer_notes' => 'nullable|string',
         ]);
 
         $data['country'] = $data['country'] ?? 'India';
+        $data['customer_notes'] = substr((string) ($data['customer_notes'] ?? ''), 0, 500) ?: null;
 
         $subtotal = $this->cart->getSubtotal();
         $couponCode = Session::get('applied_coupon');
@@ -108,7 +109,11 @@ class CheckoutController extends Controller
             $coupon = $valid ? $coupon : null;
         }
 
-        $order = $this->orders->createOrder($items, $data, $data['payment_method'], $coupon);
+        try {
+            $order = $this->orders->createOrder($items, $data, $data['payment_method'], $coupon);
+        } catch (InsufficientStockException $e) {
+            return redirect()->route('cart.index')->with('error', $e->getMessage());
+        }
 
         if ($data['payment_method'] === 'cod') {
             $this->cart->clear();

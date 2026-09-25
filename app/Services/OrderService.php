@@ -2,22 +2,29 @@
 
 namespace App\Services;
 
-use App\Mail\OrderConfirmation;
+use App\Exceptions\InsufficientStockException;
+use App\Jobs\SendOrderConfirmationEmail;
 use App\Models\AbandonedCart;
 use App\Models\Coupon;
 use App\Models\Order;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 
 class OrderService
 {
     public function __construct(protected CouponService $couponService, protected InventoryService $inventory) {}
 
+    /**
+     * @throws InsufficientStockException
+     */
     public function createOrder(Collection $cartItems, array $addressData, string $paymentMethod, ?Coupon $coupon = null): Order
     {
         $order = DB::transaction(function () use ($cartItems, $addressData, $paymentMethod, $coupon) {
+            $this->lockAndVerifyStock($cartItems);
+
             $subtotal = $cartItems->sum(function ($item) {
                 $price = $item->variant?->sale_price ?? $item->variant?->price
                     ?? $item->product->sale_price ?? $item->product->price;
@@ -26,9 +33,7 @@ class OrderService
             });
 
             $discount = $coupon ? $this->couponService->calculateDiscount($coupon, $subtotal) : 0;
-            $shippingThreshold = (float) settings('free_shipping_threshold', 999);
-            $flatRate = (float) settings('flat_shipping_rate', 49);
-            $shipping = ($subtotal - $discount) >= $shippingThreshold ? 0 : $flatRate;
+            $shipping = $this->calculateShipping($subtotal, $discount);
             $tax = $this->calculateTax($cartItems, $subtotal, $discount);
             $total = $subtotal - $discount + $shipping + $tax;
 
@@ -95,10 +100,53 @@ class OrderService
         }
 
         if (settings('send_order_emails', true)) {
-            Mail::to($order->email)->send(new OrderConfirmation($order));
+            SendOrderConfirmationEmail::dispatch($order);
         }
 
         return $order;
+    }
+
+    /**
+     * Locks each cart item's product/variant row for the rest of the
+     * enclosing transaction and re-checks stock against the live, locked
+     * value — not the possibly-stale amount loaded onto the cart item.
+     * Locking here (before any stock is decremented) is what stops two
+     * concurrent checkouts from both succeeding on the last unit: the
+     * second transaction blocks on the row lock until the first commits
+     * its decrement, then sees the now-insufficient stock and fails.
+     *
+     * @throws InsufficientStockException
+     */
+    protected function lockAndVerifyStock(Collection $cartItems): void
+    {
+        foreach ($cartItems as $item) {
+            if ($item->variant) {
+                $variant = ProductVariant::whereKey($item->variant->id)->lockForUpdate()->first();
+
+                if (! $variant || $variant->stock < $item->quantity) {
+                    throw new InsufficientStockException("Not enough stock for {$item->product->name} ({$item->variant->name}).");
+                }
+            } else {
+                $product = Product::whereKey($item->product->id)->lockForUpdate()->first();
+
+                if (! $product || $product->stock < $item->quantity) {
+                    throw new InsufficientStockException("Not enough stock for {$item->product->name}.");
+                }
+            }
+        }
+    }
+
+    /**
+     * Flat-rate shipping with a free-shipping threshold, both configurable
+     * via site settings. Shared by cart/checkout previews and order
+     * creation so the quoted shipping cost always matches what gets charged.
+     */
+    public function calculateShipping(float $subtotal, float $discount): float
+    {
+        $threshold = (float) settings('free_shipping_threshold', 999);
+        $flatRate = (float) settings('flat_shipping_rate', 49);
+
+        return ($subtotal - $discount) >= $threshold ? 0 : $flatRate;
     }
 
     /**

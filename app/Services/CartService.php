@@ -103,24 +103,65 @@ class CartService
         return [true, null];
     }
 
-    public function update(string $itemId, int $quantity): void
+    /**
+     * @return array{0: bool, 1: ?string} [success, error message]
+     */
+    public function update(string $itemId, int $quantity): array
     {
-        if (Auth::check()) {
-            CartItem::where('id', $itemId)->where('user_id', Auth::id())->update(['quantity' => max(1, $quantity)]);
+        $quantity = max(1, $quantity);
 
+        if (Auth::check()) {
+            $item = CartItem::where('id', $itemId)->where('user_id', Auth::id())->first();
+
+            if (! $item) {
+                return [false, 'Item not found.'];
+            }
+
+            [$available, $error] = $this->availableStock($item->product_id, $item->variant_id);
+
+            if ($available !== null && $quantity > $available) {
+                return [false, $error];
+            }
+
+            $item->update(['quantity' => $quantity]);
             $this->snapshotCart();
 
-            return;
+            return [true, null];
         }
 
         $cart = Session::get(self::SESSION_KEY, []);
 
-        if (isset($cart[$itemId])) {
-            $cart[$itemId]['quantity'] = max(1, $quantity);
-            Session::put(self::SESSION_KEY, $cart);
+        if (! isset($cart[$itemId])) {
+            return [false, 'Item not found.'];
         }
 
+        [$available, $error] = $this->availableStock($cart[$itemId]['product_id'], $cart[$itemId]['variant_id']);
+
+        if ($available !== null && $quantity > $available) {
+            return [false, $error];
+        }
+
+        $cart[$itemId]['quantity'] = $quantity;
+        Session::put(self::SESSION_KEY, $cart);
         $this->snapshotCart();
+
+        return [true, null];
+    }
+
+    /**
+     * @return array{0: ?int, 1: ?string} [available stock, error message if product/variant is gone]
+     */
+    protected function availableStock(int $productId, ?int $variantId): array
+    {
+        if ($variantId) {
+            $variant = ProductVariant::find($variantId);
+
+            return $variant ? [$variant->stock, 'Only '.$variant->stock.' left in stock.'] : [0, 'This item is no longer available.'];
+        }
+
+        $product = Product::find($productId);
+
+        return $product ? [$product->stock, 'Only '.$product->stock.' left in stock.'] : [0, 'This item is no longer available.'];
     }
 
     public function remove(string $itemId): void

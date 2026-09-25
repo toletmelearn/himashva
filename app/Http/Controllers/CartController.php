@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Services\CartService;
 use App\Services\CouponService;
+use App\Services\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
 class CartController extends Controller
 {
-    public function __construct(protected CartService $cart, protected CouponService $coupons) {}
+    public function __construct(protected CartService $cart, protected CouponService $coupons, protected OrderService $orders) {}
 
     public function index()
     {
@@ -29,9 +30,7 @@ class CartController extends Controller
             }
         }
 
-        $shippingThreshold = (float) settings('free_shipping_threshold', 999);
-        $flatRate = (float) settings('flat_shipping_rate', 49);
-        $shipping = ($subtotal - $discount) >= $shippingThreshold ? 0 : $flatRate;
+        $shipping = $this->orders->calculateShipping($subtotal, $discount);
         $total = $subtotal - $discount + $shipping;
 
         return view('cart.index', compact('items', 'subtotal', 'discount', 'coupon', 'shipping', 'total'));
@@ -65,7 +64,15 @@ class CartController extends Controller
     public function update(Request $request, string $id)
     {
         $data = $request->validate(['quantity' => 'required|integer|min:1']);
-        $this->cart->update($id, $data['quantity']);
+        [$success, $error] = $this->cart->update($id, $data['quantity']);
+
+        if (! $success) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $error]);
+            }
+
+            return back()->with('error', $error);
+        }
 
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'subtotal' => $this->cart->getSubtotal()]);
