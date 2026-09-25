@@ -8,6 +8,7 @@ use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CompareController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\GuestAccountController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\OrderTrackController;
@@ -33,6 +34,7 @@ Route::get('/search', [ShopController::class, 'search'])->name('search');
 
 Route::get('/api/product/{product:slug}', [ProductController::class, 'quickView'])->name('api.product.show');
 Route::get('/api/search', [ShopController::class, 'searchAutocomplete'])->name('api.search');
+Route::get('/api/recent-purchases', [HomeController::class, 'recentPurchases'])->name('api.recent-purchases');
 
 // Cart (works for guests and logged-in)
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
@@ -54,6 +56,7 @@ Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.in
 Route::post('/checkout/place-order', [CheckoutController::class, 'placeOrder'])->name('checkout.placeOrder');
 Route::post('/checkout/save-email', [CheckoutController::class, 'saveEmail'])->name('checkout.saveEmail');
 Route::get('/order/success/{orderNumber}', [CheckoutController::class, 'success'])->name('order.success');
+Route::post('/guest/create-account', [GuestAccountController::class, 'store'])->name('guest.create-account');
 
 // Payment
 Route::post('/payment/razorpay/create', [PaymentController::class, 'createRazorpayOrder'])->name('payment.razorpay.create');
@@ -104,6 +107,7 @@ Route::middleware('auth')->prefix('account')->name('account.')->group(function (
     Route::get('/orders', [AccountController::class, 'orders'])->name('orders');
     Route::get('/orders/{orderNumber}', [AccountController::class, 'orderDetail'])->name('orders.show');
     Route::post('/orders/{orderNumber}/return', [ReturnController::class, 'store'])->name('orders.return');
+    Route::post('/orders/{orderNumber}/cancel', [AccountController::class, 'cancelOrder'])->name('orders.cancel');
     Route::get('/addresses', [AddressController::class, 'index'])->name('addresses');
     Route::post('/addresses', [AddressController::class, 'store'])->name('addresses.store');
     Route::put('/addresses/{id}', [AddressController::class, 'update'])->name('addresses.update');
