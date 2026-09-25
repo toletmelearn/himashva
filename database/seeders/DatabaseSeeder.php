@@ -33,72 +33,6 @@ class DatabaseSeeder extends Seeder
         );
         $admin->assignRole('super_admin');
 
-        $categoryNames = [
-            'All Festive Candles', 'Urli Candles', 'Glass Jar Candles', 'Concrete Base Candles',
-            'Wooden Base Candles', 'Handmade Soap', 'Wax Sachet', 'Wax Melts', 'Tealights Candles',
-            'Tin Jars Candles', 'Coconut Shell Candles', 'Bouquet Candles', 'Hampers & Combo',
-            'Cake & Dessert Candle', 'Baby Shower', 'Pillar Candles', 'Figure Candle',
-        ];
-
-        $categories = collect($categoryNames)->map(fn ($name, $i) => Category::updateOrCreate(
-            ['slug' => Str::slug($name)],
-            ['name' => $name, 'sort_order' => $i, 'is_active' => true]
-        ));
-
-        $products = [
-            ['name' => 'Rose Petal Jar Candle', 'category' => 'Glass Jar Candles', 'price' => 599, 'sale' => 449, 'desc' => 'Hand-poured soy wax candle infused with rose fragrance, perfect for gifting.'],
-            ['name' => 'Sandalwood Concrete Candle', 'category' => 'Concrete Base Candles', 'price' => 799, 'sale' => null, 'desc' => 'Earthy sandalwood scent poured into a minimalist concrete vessel.'],
-            ['name' => 'Diwali Urli Candle Set', 'category' => 'Urli Candles', 'price' => 999, 'sale' => 749, 'desc' => 'Festive floating urli candles for Diwali decor, set of 4.'],
-            ['name' => 'Lavender Wooden Base Candle', 'category' => 'Wooden Base Candles', 'price' => 649, 'sale' => null, 'desc' => 'Calming lavender candle on a reclaimed wood base.'],
-            ['name' => 'Handmade Oatmeal Soap Bar', 'category' => 'Handmade Soap', 'price' => 249, 'sale' => 199, 'desc' => 'Gentle exfoliating oatmeal soap bar, cold-processed.'],
-            ['name' => 'Vanilla Wax Melt Pack', 'category' => 'Wax Melts', 'price' => 299, 'sale' => null, 'desc' => 'Set of 6 vanilla-scented wax melts for your warmer.'],
-            ['name' => 'Coconut Shell Tropical Candle', 'category' => 'Coconut Shell Candles', 'price' => 549, 'sale' => 429, 'desc' => 'Tropical coconut-lime scent in an eco-friendly coconut shell.'],
-            ['name' => 'Rose Gold Tealight Set', 'category' => 'Tealights Candles', 'price' => 349, 'sale' => null, 'desc' => 'Box of 12 unscented rose-gold tealights.'],
-            ['name' => 'Cinnamon Tin Jar Candle', 'category' => 'Tin Jars Candles', 'price' => 399, 'sale' => 329, 'desc' => 'Warm cinnamon-spice candle in a reusable tin jar.'],
-            ['name' => 'Wedding Gift Hamper', 'category' => 'Hampers & Combo', 'price' => 1499, 'sale' => 1199, 'desc' => 'Curated hamper with 3 candles, a soap bar, and wax sachets.'],
-        ];
-
-        foreach ($products as $i => $p) {
-            $category = $categories->firstWhere('name', $p['category']);
-            $product = Product::updateOrCreate(
-                ['sku' => 'HMV-'.str_pad((string) ($i + 1), 4, '0', STR_PAD_LEFT)],
-                [
-                    'category_id' => $category->id,
-                    'name' => $p['name'],
-                    'slug' => Str::slug($p['name']),
-                    'short_description' => Str::limit($p['desc'], 80),
-                    'description' => $p['desc'].' Made with 100% natural soy wax, hand-poured in small batches. Burn time approximately 40-45 hours.',
-                    'price' => $p['price'],
-                    'sale_price' => $p['sale'],
-                    'stock' => rand(10, 100),
-                    'is_active' => true,
-                    'is_featured' => $i < 4,
-                    'is_bestseller' => $i % 3 === 0,
-                    'is_new' => $i >= 8,
-                    'meta_title' => $p['name'].' | Himashva',
-                    'meta_description' => Str::limit($p['desc'], 150),
-                ]
-            );
-
-            $product->images()->firstOrCreate([
-                'image_path' => 'placeholder.jpg',
-                'is_primary' => true,
-            ]);
-        }
-
-        $banners = [
-            ['title' => 'Festive Candle Collection', 'subtitle' => 'Handcrafted with love', 'position' => 'hero', 'button_text' => 'Shop Now'],
-            ['title' => 'New Arrivals', 'subtitle' => 'Fresh scents for every season', 'position' => 'hero', 'button_text' => 'Explore'],
-            ['title' => 'Flat 20% Off Hampers', 'subtitle' => 'Limited time offer', 'position' => 'promo', 'button_text' => 'Grab Deal'],
-        ];
-
-        foreach ($banners as $i => $b) {
-            Banner::updateOrCreate(
-                ['title' => $b['title']],
-                array_merge($b, ['image_path' => 'placeholder.jpg', 'sort_order' => $i, 'is_active' => true])
-            );
-        }
-
         $settings = [
             'site_name' => ['Himashva', 'general'],
             'tagline' => ['Handcrafted Candles & Home Fragrances', 'general'],
@@ -145,15 +79,83 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        Coupon::updateOrCreate(['code' => 'WELCOME10'], [
-            'type' => 'percentage', 'value' => 10, 'max_discount_amount' => 100,
-            'per_user_limit' => 1, 'is_active' => true,
-        ]);
+        if (app()->isLocal() || app()->environment('staging')) {
+            $categoryNames = [
+                'All Festive Candles', 'Urli Candles', 'Glass Jar Candles', 'Concrete Base Candles',
+                'Wooden Base Candles', 'Handmade Soap', 'Wax Sachet', 'Wax Melts', 'Tealights Candles',
+                'Tin Jars Candles', 'Coconut Shell Candles', 'Bouquet Candles', 'Hampers & Combo',
+                'Cake & Dessert Candle', 'Baby Shower', 'Pillar Candles', 'Figure Candle',
+            ];
 
-        Coupon::updateOrCreate(['code' => 'FIRST50'], [
-            'type' => 'fixed', 'value' => 50, 'min_order_amount' => 499,
-            'per_user_limit' => 1, 'is_active' => true,
-        ]);
+            $categories = collect($categoryNames)->map(fn ($name, $i) => Category::updateOrCreate(
+                ['slug' => Str::slug($name)],
+                ['name' => $name, 'sort_order' => $i, 'is_active' => true]
+            ));
+
+            $products = [
+                ['name' => 'Rose Petal Jar Candle', 'category' => 'Glass Jar Candles', 'price' => 599, 'sale' => 449, 'desc' => 'Hand-poured soy wax candle infused with rose fragrance, perfect for gifting.'],
+                ['name' => 'Sandalwood Concrete Candle', 'category' => 'Concrete Base Candles', 'price' => 799, 'sale' => null, 'desc' => 'Earthy sandalwood scent poured into a minimalist concrete vessel.'],
+                ['name' => 'Diwali Urli Candle Set', 'category' => 'Urli Candles', 'price' => 999, 'sale' => 749, 'desc' => 'Festive floating urli candles for Diwali decor, set of 4.'],
+                ['name' => 'Lavender Wooden Base Candle', 'category' => 'Wooden Base Candles', 'price' => 649, 'sale' => null, 'desc' => 'Calming lavender candle on a reclaimed wood base.'],
+                ['name' => 'Handmade Oatmeal Soap Bar', 'category' => 'Handmade Soap', 'price' => 249, 'sale' => 199, 'desc' => 'Gentle exfoliating oatmeal soap bar, cold-processed.'],
+                ['name' => 'Vanilla Wax Melt Pack', 'category' => 'Wax Melts', 'price' => 299, 'sale' => null, 'desc' => 'Set of 6 vanilla-scented wax melts for your warmer.'],
+                ['name' => 'Coconut Shell Tropical Candle', 'category' => 'Coconut Shell Candles', 'price' => 549, 'sale' => 429, 'desc' => 'Tropical coconut-lime scent in an eco-friendly coconut shell.'],
+                ['name' => 'Rose Gold Tealight Set', 'category' => 'Tealights Candles', 'price' => 349, 'sale' => null, 'desc' => 'Box of 12 unscented rose-gold tealights.'],
+                ['name' => 'Cinnamon Tin Jar Candle', 'category' => 'Tin Jars Candles', 'price' => 399, 'sale' => 329, 'desc' => 'Warm cinnamon-spice candle in a reusable tin jar.'],
+                ['name' => 'Wedding Gift Hamper', 'category' => 'Hampers & Combo', 'price' => 1499, 'sale' => 1199, 'desc' => 'Curated hamper with 3 candles, a soap bar, and wax sachets.'],
+            ];
+
+            foreach ($products as $i => $p) {
+                $category = $categories->firstWhere('name', $p['category']);
+                $product = Product::updateOrCreate(
+                    ['sku' => 'HMV-'.str_pad((string) ($i + 1), 4, '0', STR_PAD_LEFT)],
+                    [
+                        'category_id' => $category->id,
+                        'name' => $p['name'],
+                        'slug' => Str::slug($p['name']),
+                        'short_description' => Str::limit($p['desc'], 80),
+                        'description' => $p['desc'].' Made with 100% natural soy wax, hand-poured in small batches. Burn time approximately 40-45 hours.',
+                        'price' => $p['price'],
+                        'sale_price' => $p['sale'],
+                        'stock' => rand(10, 100),
+                        'is_active' => true,
+                        'is_featured' => $i < 4,
+                        'is_bestseller' => $i % 3 === 0,
+                        'is_new' => $i >= 8,
+                        'meta_title' => $p['name'].' | Himashva',
+                        'meta_description' => Str::limit($p['desc'], 150),
+                    ]
+                );
+
+                $product->images()->firstOrCreate([
+                    'image_path' => 'placeholder.jpg',
+                    'is_primary' => true,
+                ]);
+            }
+
+            $banners = [
+                ['title' => 'Festive Candle Collection', 'subtitle' => 'Handcrafted with love', 'position' => 'hero', 'button_text' => 'Shop Now'],
+                ['title' => 'New Arrivals', 'subtitle' => 'Fresh scents for every season', 'position' => 'hero', 'button_text' => 'Explore'],
+                ['title' => 'Flat 20% Off Hampers', 'subtitle' => 'Limited time offer', 'position' => 'promo', 'button_text' => 'Grab Deal'],
+            ];
+
+            foreach ($banners as $i => $b) {
+                Banner::updateOrCreate(
+                    ['title' => $b['title']],
+                    array_merge($b, ['image_path' => 'placeholder.jpg', 'sort_order' => $i, 'is_active' => true])
+                );
+            }
+
+            Coupon::updateOrCreate(['code' => 'WELCOME10'], [
+                'type' => 'percentage', 'value' => 10, 'max_discount_amount' => 100,
+                'per_user_limit' => 1, 'is_active' => true,
+            ]);
+
+            Coupon::updateOrCreate(['code' => 'FIRST50'], [
+                'type' => 'fixed', 'value' => 50, 'min_order_amount' => 499,
+                'per_user_limit' => 1, 'is_active' => true,
+            ]);
+        }
     }
 
     private function privacyPolicyContent(): string

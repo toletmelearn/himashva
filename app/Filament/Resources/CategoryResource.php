@@ -6,9 +6,11 @@ use App\Filament\Resources\CategoryResource\Pages;
 use App\Models\Category;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class CategoryResource extends Resource
@@ -20,6 +22,16 @@ class CategoryResource extends Resource
     protected static ?string $navigationGroup = 'Catalog';
 
     protected static ?int $navigationSort = 2;
+
+    public static function canDelete(Model $record): bool
+    {
+        return $record->products()->doesntExist();
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return false; // bulk delete is too risky with cascade
+    }
 
     public static function form(Form $form): Form
     {
@@ -73,7 +85,17 @@ class CategoryResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->before(function (Tables\Actions\DeleteAction $action, Category $record) {
+                        if ($record->products()->exists()) {
+                            Notification::make()
+                                ->title('Cannot delete category — move or delete its products first.')
+                                ->danger()
+                                ->send();
+
+                            $action->halt();
+                        }
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
