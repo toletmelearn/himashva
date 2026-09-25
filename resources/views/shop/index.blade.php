@@ -18,9 +18,14 @@
 
     <h1 class="font-display text-3xl text-brand-900 mb-6">{{ $title }}</h1>
 
-    <div class="flex flex-col md:flex-row gap-8">
+    <div class="flex flex-col md:flex-row gap-8" x-data="{ showFilters: false }">
         <aside class="md:w-64 shrink-0" data-aos="fade-right">
-            <form method="GET" class="space-y-6">
+            <button type="button" @click="showFilters = !showFilters"
+                class="md:hidden w-full flex items-center justify-between border border-brand-300 rounded-lg px-4 py-3 text-sm font-medium text-brand-800 mb-4">
+                <span>Filters &amp; Sort</span>
+                <span x-text="showFilters ? '−' : '+'"></span>
+            </button>
+            <form method="GET" class="space-y-6" :class="{ 'hidden md:block': !showFilters }">
                 <div>
                     <h3 class="font-semibold text-brand-800 mb-2 text-sm">Categories</h3>
                     <div class="space-y-1 text-sm">
@@ -59,8 +64,8 @@
                 <div>
                     <h3 class="font-semibold text-brand-800 mb-2 text-sm">Price Range</h3>
                     <div class="flex gap-2">
-                        <input type="number" name="min_price" value="{{ request('min_price') }}" placeholder="Min" class="w-1/2 border border-brand-300 rounded px-2 py-1 text-sm">
-                        <input type="number" name="max_price" value="{{ request('max_price') }}" placeholder="Max" class="w-1/2 border border-brand-300 rounded px-2 py-1 text-sm">
+                        <input type="number" name="min_price" aria-label="Minimum price" value="{{ request('min_price') }}" placeholder="Min" class="w-1/2 border border-brand-300 rounded px-2 py-1 text-base sm:text-sm">
+                        <input type="number" name="max_price" aria-label="Maximum price" value="{{ request('max_price') }}" placeholder="Max" class="w-1/2 border border-brand-300 rounded px-2 py-1 text-base sm:text-sm">
                     </div>
                 </div>
 

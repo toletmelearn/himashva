@@ -3,7 +3,7 @@
     <p>Subscribe for new launches, festive offers, and candle care tips.</p>
     <form action="{{ route('newsletter.subscribe') }}" method="POST" class="newsletter-form-mock">
         @csrf
-        <input type="email" name="email" required placeholder="Your email address">
+        <input type="email" name="email" aria-label="Your email address" required placeholder="Your email address">
         <button type="submit">Subscribe</button>
     </form>
 </section>

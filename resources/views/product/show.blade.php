@@ -1,6 +1,9 @@
 <x-layouts.app>
 <x-slot:title>{{ $product->meta_title ?: $product->name }} | Himashva</x-slot:title>
 <x-slot:description>{{ $product->meta_description ?: $product->short_description }}</x-slot:description>
+@if ($product->images->first() && $product->images->first()->image_path !== 'placeholder.jpg')
+    <x-slot:image>{{ asset('storage/' . $product->images->first()->image_path) }}</x-slot:image>
+@endif
 
 <x-json-ld type="product" :data="['product' => $product]" />
 <x-json-ld type="breadcrumb" :data="['items' => [
@@ -46,13 +49,26 @@
             this.zoomOriginX = 50;
             this.zoomOriginY = 50;
         },
+        touchStartX: null,
+        handleTouchStart(e) { this.touchStartX = e.changedTouches[0].clientX; },
+        handleTouchEnd(e) {
+            if (this.touchStartX === null || !this.images.length) return;
+            const diff = this.touchStartX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 50) {
+                this.active = diff > 0
+                    ? (this.active + 1) % this.images.length
+                    : (this.active - 1 + this.images.length) % this.images.length;
+            }
+            this.touchStartX = null;
+        },
     }">
         <div>
             <div class="clip-reveal aspect-square bg-gradient-to-br from-brand-100 to-brand-200 rounded-2xl overflow-hidden mb-4 flex items-center justify-center relative"
                 style="cursor: crosshair;"
-                @mousemove="zoom($event)" @mouseleave="resetZoom()">
+                @mousemove="zoom($event)" @mouseleave="resetZoom()"
+                @touchstart="handleTouchStart($event)" @touchend="handleTouchEnd($event)"
                 <template x-if="images.length && images[active].image_path !== 'placeholder.jpg'">
-                    <img :src="storageUrl + images[active].image_path" class="w-full h-full object-cover"
+                    <img :src="storageUrl + images[active].image_path" alt="{{ $product->name }}" class="w-full h-full object-cover"
                         :style="'transform: scale(' + zoomScale + '); transform-origin: ' + zoomOriginX + '% ' + zoomOriginY + '%; transition: transform 0.1s ease;'">
                 </template>
                 <template x-if="!images.length || images[active].image_path === 'placeholder.jpg'">
@@ -64,7 +80,7 @@
             <div class="flex gap-2" x-show="images.length > 1">
                 <template x-for="(img, i) in images" :key="i">
                     <button @click="active = i" class="w-16 h-16 rounded-lg overflow-hidden border-2 relative" :class="active === i ? 'border-brand-700' : 'border-transparent'">
-                        <img :src="storageUrl + img.image_path" class="w-full h-full object-cover">
+                        <img :src="storageUrl + img.image_path" alt="{{ $product->name }} thumbnail" class="w-full h-full object-cover">
                     </button>
                 </template>
             </div>
@@ -196,27 +212,25 @@
                 <button
                     @click="fetch('{{ route('cart.add') }}', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
                         body: JSON.stringify({ product_id: {{ $product->id }}, variant_id: selectedVariant ? selectedVariant.id : null, quantity: quantity })
                     }).then(r => r.json()).then(d => {
                         document.getElementById('cart-count-badge').textContent = d.count;
                         window.dispatchEvent(new CustomEvent('toast', { detail: 'Added to cart!' }));
-                    })"
+                    }).catch(err => console.error('Cart error:', err))"
                     class="flex-1 bg-brand-700 hover:bg-brand-800 text-white font-medium py-3 rounded-full active:scale-95 transition-transform">
                     Add to Cart
                 </button>
 
-                @auth
-                    <button
-                        @click.prevent="fetch('{{ route('wishlist.toggle') }}', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
-                            body: JSON.stringify({ product_id: {{ $product->id }} })
-                        })"
-                        class="w-12 h-12 rounded-full border border-brand-300 flex items-center justify-center {{ $inWishlist ? 'text-red-500' : 'text-brand-700' }}">
-                        ♥
-                    </button>
-                @endauth
+                <button
+                    @click.prevent="fetch('{{ route('wishlist.toggle') }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                        body: JSON.stringify({ product_id: {{ $product->id }} })
+                    }).then(r => { if (r.status === 401) { window.location.href = '{{ route('login') }}'; } })"
+                    class="w-12 h-12 rounded-full border border-brand-300 flex items-center justify-center {{ ($inWishlist ?? false) ? 'text-red-500' : 'text-brand-700' }}">
+                    ♥
+                </button>
             </div>
 
             <div class="flex items-center gap-3 mb-8">
@@ -233,7 +247,7 @@
             </div>
 
             <div x-data="{ tab: 'description' }">
-                <div class="flex gap-6 border-b border-brand-200 text-sm font-medium">
+                <div class="flex gap-6 border-b border-brand-200 text-sm font-medium overflow-x-auto whitespace-nowrap">
                     <button @click="tab = 'description'" :class="tab === 'description' ? 'text-brand-800 border-b-2 border-brand-700' : 'text-brand-400'" class="pb-3">Description</button>
                     <button @click="tab = 'info'" :class="tab === 'info' ? 'text-brand-800 border-b-2 border-brand-700' : 'text-brand-400'" class="pb-3">Additional Info</button>
                     <button @click="tab = 'reviews'" :class="tab === 'reviews' ? 'text-brand-800 border-b-2 border-brand-700' : 'text-brand-400'" class="pb-3">Reviews ({{ $product->review_count }})</button>
@@ -311,7 +325,7 @@
                     <div x-show="lightbox" x-cloak @click.self="lightbox = false" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
                         <div class="max-w-2xl w-full">
                             <template x-if="lightboxType === 'image'">
-                                <img :src="lightboxSrc" class="w-full h-auto rounded-lg">
+                                <img :src="lightboxSrc" alt="Enlarged review photo" class="w-full h-auto rounded-lg">
                             </template>
                             <template x-if="lightboxType === 'video'">
                                 <video :src="lightboxSrc" controls autoplay class="w-full h-auto rounded-lg"></video>
@@ -348,7 +362,7 @@
                             <div class="flex gap-2" x-show="previews.length">
                                 <template x-for="(p, i) in previews" :key="i">
                                     <div class="w-16 h-16 rounded-lg overflow-hidden border border-brand-200">
-                                        <img x-show="!p.isVideo" :src="p.url" class="w-full h-full object-cover">
+                                        <img x-show="!p.isVideo" :src="p.url" alt="" class="w-full h-full object-cover">
                                         <video x-show="p.isVideo" :src="p.url" class="w-full h-full object-cover"></video>
                                     </div>
                                 </template>
@@ -437,12 +451,12 @@
         <button
             @click="fetch('{{ route('cart.add') }}', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
                 body: JSON.stringify({ product_id: {{ $product->id }}, quantity: 1 })
             }).then(r => r.json()).then(d => {
                 document.getElementById('cart-count-badge').textContent = d.count;
                 window.dispatchEvent(new CustomEvent('toast', { detail: 'Added to cart!' }));
-            })"
+            }).catch(err => console.error('Cart error:', err))"
             class="bg-brand-700 hover:bg-brand-800 text-white px-8 py-2.5 rounded-full text-sm font-semibold active:scale-95 transition-transform shrink-0">
             Add to Cart
         </button>

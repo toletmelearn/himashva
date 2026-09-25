@@ -43,20 +43,20 @@
             <div data-aos="fade-up" data-aos-delay="100" class="bg-white border border-brand-200 rounded-xl p-6">
                 <h2 class="font-semibold text-brand-900 mb-4">Shipping Details</h2>
                 <div class="grid sm:grid-cols-2 gap-4">
-                    <input id="name" name="name" placeholder="Full Name" required value="{{ old('name', auth()->user()->name ?? '') }}" class="border border-brand-300 rounded px-3 py-2 text-sm sm:col-span-2">
-                    <input name="email" type="email" placeholder="Email" required value="{{ old('email', auth()->user()->email ?? '') }}" class="border border-brand-300 rounded px-3 py-2 text-sm"
+                    <input id="name" name="name" aria-label="Full Name" placeholder="Full Name" required value="{{ old('name', auth()->user()->name ?? '') }}" class="border border-brand-300 rounded px-3 py-2 text-base sm:text-sm sm:col-span-2">
+                    <input id="email" name="email" type="email" aria-label="Email" placeholder="Email" required value="{{ old('email', auth()->user()->email ?? '') }}" class="border border-brand-300 rounded px-3 py-2 text-base sm:text-sm"
                         @blur="fetch('{{ route('checkout.saveEmail') }}', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
                             body: JSON.stringify({ email: $event.target.value }),
                         })">
-                    <input id="phone" name="phone" placeholder="Phone" required value="{{ old('phone', auth()->user()->phone ?? '') }}" class="border border-brand-300 rounded px-3 py-2 text-sm">
-                    <input id="address_line_1" name="address_line_1" placeholder="Address Line 1" required value="{{ old('address_line_1') }}" class="border border-brand-300 rounded px-3 py-2 text-sm sm:col-span-2">
-                    <input id="address_line_2" name="address_line_2" placeholder="Address Line 2 (optional)" value="{{ old('address_line_2') }}" class="border border-brand-300 rounded px-3 py-2 text-sm sm:col-span-2">
-                    <input id="city" name="city" placeholder="City" required value="{{ old('city') }}" class="border border-brand-300 rounded px-3 py-2 text-sm">
-                    <input id="state" name="state" placeholder="State" required value="{{ old('state') }}" class="border border-brand-300 rounded px-3 py-2 text-sm">
-                    <input id="postal_code" name="postal_code" placeholder="Postal Code" required value="{{ old('postal_code') }}" class="border border-brand-300 rounded px-3 py-2 text-sm">
-                    <input name="country" placeholder="Country" value="India" class="border border-brand-300 rounded px-3 py-2 text-sm">
+                    <input id="phone" name="phone" aria-label="Phone" placeholder="Phone" required value="{{ old('phone', auth()->user()->phone ?? '') }}" class="border border-brand-300 rounded px-3 py-2 text-base sm:text-sm">
+                    <input id="address_line_1" name="address_line_1" aria-label="Address Line 1" placeholder="Address Line 1" required value="{{ old('address_line_1') }}" class="border border-brand-300 rounded px-3 py-2 text-base sm:text-sm sm:col-span-2">
+                    <input id="address_line_2" name="address_line_2" aria-label="Address Line 2 (optional)" placeholder="Address Line 2 (optional)" value="{{ old('address_line_2') }}" class="border border-brand-300 rounded px-3 py-2 text-base sm:text-sm sm:col-span-2">
+                    <input id="city" name="city" aria-label="City" placeholder="City" required value="{{ old('city') }}" class="border border-brand-300 rounded px-3 py-2 text-base sm:text-sm">
+                    <input id="state" name="state" aria-label="State" placeholder="State" required value="{{ old('state') }}" class="border border-brand-300 rounded px-3 py-2 text-base sm:text-sm">
+                    <input id="postal_code" name="postal_code" aria-label="Postal Code" placeholder="Postal Code" required value="{{ old('postal_code') }}" class="border border-brand-300 rounded px-3 py-2 text-base sm:text-sm">
+                    <input id="country" name="country" aria-label="Country" placeholder="Country" value="India" class="border border-brand-300 rounded px-3 py-2 text-base sm:text-sm">
                 </div>
             </div>
 
@@ -80,6 +80,17 @@
                 @error('payment_method')
                     <p class="text-red-600 text-xs mt-2">{{ $message }}</p>
                 @enderror
+            </div>
+
+            <div data-aos="fade-up" data-aos-delay="250" class="bg-white border border-brand-200 rounded-xl p-6">
+                <label for="customer_notes" class="block font-semibold text-brand-900 mb-2">Order Notes (optional)</label>
+                <textarea id="customer_notes" name="customer_notes" rows="2" maxlength="500"
+                          placeholder="Gift wrap? Special delivery instructions? Let us know..."
+                          class="w-full border border-brand-300 rounded px-3 py-2 text-base sm:text-sm">{{ old('customer_notes') }}</textarea>
+                @error('customer_notes')
+                    <p class="text-red-600 text-xs mt-2">{{ $message }}</p>
+                @enderror
+                <p class="text-xs text-brand-400 mt-1">Max 500 characters</p>
             </div>
 
             <button type="submit" :disabled="loading" @if ($activeGateways->isEmpty()) disabled @endif

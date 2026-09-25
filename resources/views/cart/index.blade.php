@@ -78,7 +78,7 @@
                                 <div class="flex items-center border border-brand-300 rounded-full overflow-hidden">
                                     <button type="button" @click="qty = Math.max(1, qty - 1)"
                                         class="w-8 h-8 text-brand-700 hover:bg-brand-100 active:scale-90 transition-transform">−</button>
-                                    <input type="number" name="quantity" x-model="qty" min="1" class="w-10 text-center border-0 text-sm focus:outline-none focus:ring-0">
+                                    <input type="number" name="quantity" aria-label="Quantity" x-model="qty" min="1" class="w-10 text-center border-0 text-sm focus:outline-none focus:ring-0">
                                     <button type="button" @click="qty++" class="w-8 h-8 text-brand-700 hover:bg-brand-100 active:scale-90 transition-transform">+</button>
                                 </div>
                                 <button class="text-xs text-brand-600 underline">Update</button>
@@ -103,8 +103,8 @@
 
                 <form action="{{ route('cart.applyCoupon') }}" method="POST" class="flex gap-2 mb-4">
                     @csrf
-                    <input type="text" name="code" placeholder="Coupon code" class="flex-1 border border-brand-300 rounded px-3 py-2 text-sm">
-                    <button class="bg-brand-700 text-white px-4 rounded text-sm">Apply</button>
+                    <input type="text" name="code" aria-label="Coupon code" placeholder="Coupon code" class="flex-1 min-w-0 border border-brand-300 rounded px-3 py-2 text-base sm:text-sm">
+                    <button class="bg-brand-700 text-white px-4 rounded text-sm shrink-0">Apply</button>
                 </form>
 
                 @if ($coupon)

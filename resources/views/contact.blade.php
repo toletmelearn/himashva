@@ -22,11 +22,11 @@
 
     <form action="{{ route('contact.submit') }}" method="POST" class="bg-white border border-brand-200 rounded-xl p-6 space-y-4">
         @csrf
-        <input name="name" placeholder="Your Name" required value="{{ old('name') }}" class="w-full border border-brand-300 rounded px-3 py-2 text-sm">
-        <input name="email" type="email" placeholder="Email" required value="{{ old('email') }}" class="w-full border border-brand-300 rounded px-3 py-2 text-sm">
-        <input name="phone" placeholder="Phone (optional)" value="{{ old('phone') }}" class="w-full border border-brand-300 rounded px-3 py-2 text-sm">
-        <input name="subject" placeholder="Subject" required value="{{ old('subject') }}" class="w-full border border-brand-300 rounded px-3 py-2 text-sm">
-        <textarea name="message" placeholder="Your Message" required rows="5" class="w-full border border-brand-300 rounded px-3 py-2 text-sm">{{ old('message') }}</textarea>
+        <input name="name" aria-label="Your Name" placeholder="Your Name" required value="{{ old('name') }}" class="w-full border border-brand-300 rounded px-3 py-2 text-sm">
+        <input name="email" type="email" aria-label="Email" placeholder="Email" required value="{{ old('email') }}" class="w-full border border-brand-300 rounded px-3 py-2 text-sm">
+        <input name="phone" aria-label="Phone (optional)" placeholder="Phone (optional)" value="{{ old('phone') }}" class="w-full border border-brand-300 rounded px-3 py-2 text-sm">
+        <input name="subject" aria-label="Subject" placeholder="Subject" required value="{{ old('subject') }}" class="w-full border border-brand-300 rounded px-3 py-2 text-sm">
+        <textarea name="message" aria-label="Your Message" placeholder="Your Message" required rows="5" class="w-full border border-brand-300 rounded px-3 py-2 text-sm">{{ old('message') }}</textarea>
         <button class="w-full bg-brand-700 hover:bg-brand-800 text-white font-medium py-3 rounded-full transition">Send Message</button>
     </form>
 </div>

@@ -3,8 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $title ?? settings('meta_title', 'Himashva — Handcrafted Candles & Home Fragrances') }}</title>
-    <meta name="description" content="{{ $description ?? settings('meta_description', '') }}">
+    @php
+        $ogTitle = $title ?? settings('meta_title', 'Himashva — Handcrafted Candles & Home Fragrances');
+        $ogDescription = $description ?? settings('meta_description', '');
+        $ogImage = isset($image) ? $image : settings('og_image');
+    @endphp
+    <title>{{ $ogTitle }}</title>
+    <meta name="description" content="{{ $ogDescription }}">
+    <meta property="og:title" content="{{ $ogTitle }}">
+    <meta property="og:description" content="{{ $ogDescription }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    @if ($ogImage)
+        <meta property="og:image" content="{{ $ogImage }}">
+        <meta name="twitter:card" content="summary_large_image">
+    @else
+        <meta name="twitter:card" content="summary">
+    @endif
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕯️</text></svg>">
 
@@ -85,7 +100,8 @@
         .logo-himashva { font-family: var(--font-display); font-size: 28px; font-weight: 600; letter-spacing: 1px; color: var(--text-primary); line-height: 1; flex-shrink: 0; }
         .logo-himashva small { display: block; font-family: var(--font-body); font-size: 9px; font-weight: 500; letter-spacing: 3px; color: var(--text-muted); margin-top: 2px; }
         .header-search { flex: 1; max-width: 420px; position: relative; }
-        .header-search input { width: 100%; padding: 10px 44px 10px 16px; border: 1px solid var(--border); border-radius: 40px; background: var(--bg-warm); font-size: 13px; color: var(--text-primary); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+        .header-search input { width: 100%; padding: 10px 44px 10px 16px; border: 1px solid var(--border); border-radius: 40px; background: var(--bg-warm); font-size: 16px; color: var(--text-primary); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+        @media (min-width: 769px) { .header-search input { font-size: 13px; } }
         .header-search input::placeholder { color: var(--text-muted); }
         .header-search input:focus { border-color: var(--accent-light); box-shadow: 0 0 0 3px rgba(139,94,60,0.1); }
         .header-search button { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; display: grid; place-items: center; color: var(--text-secondary); }
@@ -220,7 +236,7 @@
         .newsletter-section-mock h2 { font-family: var(--font-display); font-size: 28px; font-weight: 500; margin-bottom: 8px; }
         .newsletter-section-mock p { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
         .newsletter-form-mock { display: flex; gap: 8px; max-width: 440px; margin: 0 auto; }
-        .newsletter-form-mock input { flex: 1; padding: 12px 18px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; font-size: 13px; outline: none; }
+        .newsletter-form-mock input { flex: 1; padding: 12px 18px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; font-size: 16px; outline: none; }
         .newsletter-form-mock input:focus { border-color: var(--accent-light); }
         .newsletter-form-mock button { padding: 12px 24px; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; border-radius: var(--radius-sm); transition: background 0.2s; }
         .newsletter-form-mock button:hover { background: var(--accent-hover); }
@@ -361,6 +377,26 @@
             50% { box-shadow: 0 0 20px rgba(37,211,102,0.5), 0 0 40px rgba(37,211,102,0.15); }
         }
 
+        /* ===== GLOBAL MOBILE FIXES ===== */
+        html { -webkit-text-size-adjust: 100%; }
+
+        /* Prevent iOS zoom on focus: all inputs need >=16px */
+        input, textarea, select { font-size: 16px; }
+
+        .product-scroll-container, .scrollbar-hide {
+            -webkit-overflow-scrolling: touch;
+            scroll-snap-type: x mandatory;
+        }
+        .product-scroll-container > *, .scrollbar-hide > * { scroll-snap-align: start; }
+
+        @media (max-width: 640px) {
+            .container { padding-left: 1rem; padding-right: 1rem; }
+        }
+        @media (max-width: 767px) {
+            .wa-float { bottom: 84px !important; }
+            .back-to-top { bottom: 148px !important; }
+        }
+
         /* Respect user motion preferences */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
@@ -405,8 +441,8 @@
 
     {{-- WhatsApp Floating Button --}}
     @if(settings('whatsapp_number'))
-    <a href="https://wa.me/{{ settings('whatsapp_number') }}" target="_blank" rel="noopener"
-       class="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center wa-glow transition-transform hover:scale-110"
+    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', settings('whatsapp_number')) }}?text={{ urlencode('Hi! I was browsing '.settings('site_name', 'Himashva').' and have a question.') }}" target="_blank" rel="noopener"
+       class="wa-float fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center wa-glow transition-transform hover:scale-110"
        aria-label="Chat on WhatsApp">
         <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.111.547 4.099 1.504 5.828L0 24l6.335-1.652A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75c-1.894 0-3.689-.482-5.254-1.385l-.377-.224-3.909 1.02 1.04-3.796-.246-.391A9.691 9.691 0 012.25 12 9.75 9.75 0 0112 2.25 9.75 9.75 0 0121.75 12 9.75 9.75 0 0112 21.75z"/></svg>
     </a>
@@ -423,7 +459,7 @@
         x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0 translate-y-4"
-        class="fixed bottom-24 right-6 z-40 bg-brand-700 hover:bg-brand-800 text-white w-11 h-11 rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110"
+        class="back-to-top fixed bottom-24 right-6 z-40 bg-brand-700 hover:bg-brand-800 text-white w-11 h-11 rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110"
         aria-label="Back to top">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 15l7-7 7 7"/></svg>
     </button>
@@ -535,6 +571,85 @@
     </script>
 
     @include('compare.partials.floating-bar')
+
+    {{-- Social Proof Toast --}}
+    <div x-data="socialProofToast()" x-cloak>
+        <div x-show="visible" x-transition:enter="transition ease-out duration-500"
+             x-transition:enter-start="translate-y-full opacity-0" x-transition:enter-end="translate-y-0 opacity-100"
+             x-transition:leave="transition ease-in duration-300"
+             x-transition:leave-start="translate-y-0 opacity-100" x-transition:leave-end="translate-y-full opacity-0"
+             style="position: fixed; bottom: 20px; left: 20px; z-index: 45; max-width: 320px; background: white; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); border: 1px solid #EAE2D6; overflow: hidden;">
+            <button @click="visible = false" style="position: absolute; top: 6px; right: 8px; background: none; border: none; font-size: 16px; color: #9C8E80; cursor: pointer; line-height: 1;">&times;</button>
+            <a :href="current?.product_url || '#'" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; text-decoration: none;">
+                <template x-if="current?.image">
+                    <img :src="current.image" :alt="current?.product" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; flex-shrink: 0;">
+                </template>
+                <template x-if="!current?.image">
+                    <div style="width: 50px; height: 50px; border-radius: 8px; background: #F8F3EC; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">🕯️</div>
+                </template>
+                <div style="min-width: 0;">
+                    <div style="font-size: 0.8rem; color: #2C2018;">
+                        <span style="font-weight: 600;" x-text="current?.name"></span>
+                        <span>from</span>
+                        <span style="font-weight: 600;" x-text="current?.city"></span>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #6B5D50; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        purchased <span style="font-weight: 500;" x-text="current?.product"></span>
+                    </div>
+                    <div style="font-size: 0.65rem; color: #9C8E80; margin-top: 2px;" x-text="current?.time_ago"></div>
+                </div>
+            </a>
+            <div style="height: 3px; background: #F0EBE3;">
+                <div style="height: 100%; background: linear-gradient(90deg, #8B5E3C, #C9A77D); transition: width 0.3s linear;" :style="'width: ' + progress + '%'"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function socialProofToast() {
+        return {
+            purchases: [],
+            currentIndex: 0,
+            current: null,
+            visible: false,
+            progress: 100,
+            timer: null,
+            async init() {
+                if (window.location.pathname.includes('/checkout') || window.location.pathname.includes('/cart')) return;
+
+                try {
+                    const res = await fetch('{{ route('api.recent-purchases') }}');
+                    this.purchases = await res.json();
+                } catch (e) { return; }
+
+                if (this.purchases.length === 0) return;
+
+                setTimeout(() => this.showNext(), 8000);
+            },
+            showNext() {
+                if (this.purchases.length === 0) return;
+                this.current = this.purchases[this.currentIndex % this.purchases.length];
+                this.currentIndex++;
+                this.visible = true;
+                this.progress = 100;
+
+                const duration = 5000;
+                const interval = 50;
+                let elapsed = 0;
+                clearInterval(this.timer);
+                this.timer = setInterval(() => {
+                    elapsed += interval;
+                    this.progress = Math.max(0, 100 - (elapsed / duration * 100));
+                    if (elapsed >= duration) {
+                        clearInterval(this.timer);
+                        this.visible = false;
+                        setTimeout(() => this.showNext(), 20000 + Math.random() * 15000);
+                    }
+                }, interval);
+            }
+        };
+    }
+    </script>
 
     @stack('scripts')
 </body>
