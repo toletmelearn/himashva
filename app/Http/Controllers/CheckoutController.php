@@ -114,6 +114,10 @@ class CheckoutController extends Controller
             $this->cart->clear();
             Session::forget('applied_coupon');
 
+            if (! Auth::check()) {
+                Session::put('claimable_order_id', $order->id);
+            }
+
             return redirect()->route('order.success', $order->order_number)->with('success', 'Order placed successfully!');
         }
 

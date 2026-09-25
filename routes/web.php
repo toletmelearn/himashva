@@ -56,7 +56,7 @@ Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.in
 Route::post('/checkout/place-order', [CheckoutController::class, 'placeOrder'])->name('checkout.placeOrder');
 Route::post('/checkout/save-email', [CheckoutController::class, 'saveEmail'])->name('checkout.saveEmail');
 Route::get('/order/success/{orderNumber}', [CheckoutController::class, 'success'])->name('order.success');
-Route::post('/guest/create-account', [GuestAccountController::class, 'store'])->name('guest.create-account');
+Route::post('/guest/create-account', [GuestAccountController::class, 'store'])->middleware('throttle:10,1')->name('guest.create-account');
 
 // Payment
 Route::post('/payment/razorpay/create', [PaymentController::class, 'createRazorpayOrder'])->name('payment.razorpay.create');

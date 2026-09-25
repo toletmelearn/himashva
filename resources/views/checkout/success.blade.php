@@ -44,7 +44,7 @@
     </div>
 
     @guest
-        @if (! $order->user_id)
+        @if (! $order->user_id && session('claimable_order_id') === $order->id)
         <div x-data="{ creating: false, done: false, error: '' }"
              style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, #F8F3EC, #EAE2D6); border-radius: 16px; border: 1px solid #D4C4B0; text-align: left;">
 

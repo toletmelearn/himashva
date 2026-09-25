@@ -64,6 +64,10 @@ class PaymentController extends Controller
         $cart->clear();
         Session::forget(['applied_coupon', 'pending_order']);
 
+        if (! auth()->check()) {
+            Session::put('claimable_order_id', $order->id);
+        }
+
         return response()->json(['success' => true, 'redirect' => route('order.success', $order->order_number)]);
     }
 }
