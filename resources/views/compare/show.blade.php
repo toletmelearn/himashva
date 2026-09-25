@@ -18,7 +18,7 @@
                             @foreach ($products as $product)
                                 <td class="p-3 text-center border-b border-brand-100">
                                     @if ($product->images->first() && $product->images->first()->image_path !== 'placeholder.jpg')
-                                        <img src="{{ asset('storage/' . $product->images->first()->image_path) }}" class="w-24 h-24 object-cover mx-auto rounded-lg">
+                                        <img src="{{ asset('storage/' . $product->images->first()->image_path) }}" alt="{{ $product->name }}" class="w-24 h-24 object-cover mx-auto rounded-lg" loading="lazy">
                                     @else
                                         <div class="w-24 h-24 mx-auto flex items-center justify-center bg-brand-50 rounded-lg text-2xl">🕯️</div>
                                     @endif

@@ -2,8 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\Category;
 use App\Models\ChatbotResponse;
+use App\Models\Product;
+use App\Observers\CategoryObserver;
 use App\Observers\ChatbotResponseObserver;
+use App\Observers\ProductObserver;
 use App\Services\Payment\PaymentGatewayManager;
 use App\Services\Shipping\ShippingManager;
 use App\Services\ShippingServiceInterface;
@@ -28,5 +32,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         ChatbotResponse::observe(ChatbotResponseObserver::class);
+        Category::observe(CategoryObserver::class);
+        Product::observe(ProductObserver::class);
     }
 }

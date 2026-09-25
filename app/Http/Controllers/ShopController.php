@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\CategoryService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class ShopController extends Controller
 {
+    public function __construct(protected CategoryService $categories) {}
+
     /**
      * @var array<string, array{0: int, 1: int}>
      */
@@ -44,12 +47,14 @@ class ShopController extends Controller
             ->where(function ($q) use ($term) {
                 $q->where('name', 'like', "%{$term}%")
                     ->orWhere('description', 'like', "%{$term}%")
+                    ->orWhere('short_description', 'like', "%{$term}%")
                     ->orWhere('sku', 'like', "%{$term}%")
-                    ->orWhereHas('category', fn ($cq) => $cq->where('name', 'like', "%{$term}%"));
+                    ->orWhereHas('category', fn ($cq) => $cq->where('name', 'like', "%{$term}%"))
+                    ->orWhereHas('attributes_', fn ($aq) => $aq->where('attribute_value', 'like', "%{$term}%"));
             })
             ->paginate(12)->withQueryString();
 
-        $categories = Category::active()->root()->orderBy('sort_order')->get();
+        $categories = $this->categories->tree();
 
         return view('shop.search', compact('products', 'categories', 'term'));
     }
@@ -65,7 +70,9 @@ class ShopController extends Controller
         $products = Product::active()->with(['images', 'category'])
             ->where(function ($q) use ($term) {
                 $q->where('name', 'like', "%{$term}%")
-                    ->orWhere('sku', 'like', "%{$term}%");
+                    ->orWhere('sku', 'like', "%{$term}%")
+                    ->orWhere('short_description', 'like', "%{$term}%")
+                    ->orWhereHas('attributes_', fn ($aq) => $aq->where('attribute_value', 'like', "%{$term}%"));
             })
             ->limit(6)
             ->get()
@@ -94,7 +101,7 @@ class ShopController extends Controller
         $this->applySort($query, $request);
 
         $products = $query->paginate(12)->withQueryString();
-        $categories = Category::active()->root()->orderBy('sort_order')->get();
+        $categories = $this->categories->tree();
 
         return view('shop.index', [
             'products' => $products,
