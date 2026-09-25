@@ -119,4 +119,27 @@ class GuestAccountCreationTest extends TestCase
         $user = User::where('email', 'linked@example.com')->firstOrFail();
         $this->assertTrue($order->fresh()->user_id === $user->id);
     }
+
+    public function test_guest_sees_create_account_panel_on_success_page(): void
+    {
+        $order = $this->guestOrder();
+
+        $response = $this->get(route('order.success', $order->order_number));
+
+        $response->assertOk();
+        $response->assertSee('Create My Account');
+        $response->assertSee(route('guest.create-account'), false);
+        $response->assertSee($order->email);
+    }
+
+    public function test_logged_in_user_does_not_see_create_account_panel(): void
+    {
+        $user = User::factory()->create();
+        $order = Order::factory()->create(['user_id' => $user->id]);
+
+        $response = $this->actingAs($user)->get(route('order.success', $order->order_number));
+
+        $response->assertOk();
+        $response->assertDontSee('Create My Account');
+    }
 }
