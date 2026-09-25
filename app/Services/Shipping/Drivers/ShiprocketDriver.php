@@ -12,6 +12,7 @@ use App\Services\Shipping\DTOs\TrackingResult;
 use App\Services\Shipping\ShippingDriverInterface;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ShiprocketDriver implements ShippingDriverInterface
 {
@@ -25,10 +26,16 @@ class ShiprocketDriver implements ShippingDriverInterface
         }
 
         return Cache::remember("shiprocket_token_{$config->id}", now()->addHours(23), function () use ($email, $password) {
-            $response = Http::post('https://apiv2.shiprocket.in/v1/external/auth/login', [
-                'email' => $email,
-                'password' => $password,
-            ]);
+            try {
+                $response = Http::post('https://apiv2.shiprocket.in/v1/external/auth/login', [
+                    'email' => $email,
+                    'password' => $password,
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('Shiprocket authentication failed', ['message' => $e->getMessage()]);
+
+                return null;
+            }
 
             return $response->successful() ? $response->json('token') : null;
         });
@@ -47,12 +54,18 @@ class ShiprocketDriver implements ShippingDriverInterface
             return new PincodeResult(available: false);
         }
 
-        $response = Http::withToken($token)->get('https://apiv2.shiprocket.in/v1/external/courier/serviceability', [
-            'pickup_postcode' => $config->getSetting('pickup_pincode', '110001'),
-            'delivery_postcode' => $pincode,
-            'weight' => 0.5,
-            'cod' => 0,
-        ]);
+        try {
+            $response = Http::withToken($token)->get('https://apiv2.shiprocket.in/v1/external/courier/serviceability', [
+                'pickup_postcode' => $config->getSetting('pickup_pincode', '110001'),
+                'delivery_postcode' => $pincode,
+                'weight' => 0.5,
+                'cod' => 0,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Shiprocket pincode check failed', ['pincode' => $pincode, 'message' => $e->getMessage()]);
+
+            return new PincodeResult(available: false);
+        }
 
         if (! $response->successful()) {
             return new PincodeResult(available: false);
@@ -75,12 +88,18 @@ class ShiprocketDriver implements ShippingDriverInterface
             return new ShippingRateResult(rate: (float) $config->getSetting('flat_rate', 49));
         }
 
-        $response = Http::withToken($token)->get('https://apiv2.shiprocket.in/v1/external/courier/serviceability', [
-            'pickup_postcode' => $config->getSetting('pickup_pincode', '110001'),
-            'delivery_postcode' => $request->pincode,
-            'weight' => max($request->weightGrams, 100) / 1000,
-            'cod' => $request->cod ? 1 : 0,
-        ]);
+        try {
+            $response = Http::withToken($token)->get('https://apiv2.shiprocket.in/v1/external/courier/serviceability', [
+                'pickup_postcode' => $config->getSetting('pickup_pincode', '110001'),
+                'delivery_postcode' => $request->pincode,
+                'weight' => max($request->weightGrams, 100) / 1000,
+                'cod' => $request->cod ? 1 : 0,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Shiprocket rate calculation failed', ['pincode' => $request->pincode, 'message' => $e->getMessage()]);
+
+            return new ShippingRateResult(rate: (float) $config->getSetting('flat_rate', 49));
+        }
 
         if ($response->successful() && $response->json('data.available_courier_companies.0.rate')) {
             return new ShippingRateResult(
@@ -101,32 +120,38 @@ class ShiprocketDriver implements ShippingDriverInterface
             return new ShipmentResult(success: false);
         }
 
-        $response = Http::withToken($token)->post('https://apiv2.shiprocket.in/v1/external/orders/create/adhoc', [
-            'order_id' => $order->order_number,
-            'order_date' => $order->created_at->format('Y-m-d H:i'),
-            'pickup_location' => $config->getSetting('pickup_address', 'Primary'),
-            'billing_customer_name' => $order->name,
-            'billing_address' => $order->address_line_1,
-            'billing_city' => $order->city,
-            'billing_pincode' => $order->postal_code,
-            'billing_state' => $order->state,
-            'billing_country' => $order->country,
-            'billing_email' => $order->email,
-            'billing_phone' => $order->phone,
-            'shipping_is_billing' => true,
-            'order_items' => $order->items->map(fn ($item) => [
-                'name' => $item->product_name,
-                'sku' => $item->sku,
-                'units' => $item->quantity,
-                'selling_price' => $item->unit_price,
-            ])->toArray(),
-            'payment_method' => $order->payment_method === 'cod' ? 'COD' : 'Prepaid',
-            'sub_total' => $order->total,
-            'length' => $config->getSetting('default_length_cm', 10),
-            'breadth' => $config->getSetting('default_breadth_cm', 10),
-            'height' => $config->getSetting('default_height_cm', 10),
-            'weight' => ($config->getSetting('default_weight_grams', 500)) / 1000,
-        ]);
+        try {
+            $response = Http::withToken($token)->post('https://apiv2.shiprocket.in/v1/external/orders/create/adhoc', [
+                'order_id' => $order->order_number,
+                'order_date' => $order->created_at->format('Y-m-d H:i'),
+                'pickup_location' => $config->getSetting('pickup_address', 'Primary'),
+                'billing_customer_name' => $order->name,
+                'billing_address' => $order->address_line_1,
+                'billing_city' => $order->city,
+                'billing_pincode' => $order->postal_code,
+                'billing_state' => $order->state,
+                'billing_country' => $order->country,
+                'billing_email' => $order->email,
+                'billing_phone' => $order->phone,
+                'shipping_is_billing' => true,
+                'order_items' => $order->items->map(fn ($item) => [
+                    'name' => $item->product_name,
+                    'sku' => $item->sku,
+                    'units' => $item->quantity,
+                    'selling_price' => $item->unit_price,
+                ])->toArray(),
+                'payment_method' => $order->payment_method === 'cod' ? 'COD' : 'Prepaid',
+                'sub_total' => $order->total,
+                'length' => $config->getSetting('default_length_cm', 10),
+                'breadth' => $config->getSetting('default_breadth_cm', 10),
+                'height' => $config->getSetting('default_height_cm', 10),
+                'weight' => ($config->getSetting('default_weight_grams', 500)) / 1000,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Shiprocket shipment creation failed', ['order_id' => $order->id, 'message' => $e->getMessage()]);
+
+            return new ShipmentResult(success: false);
+        }
 
         if (! $response->successful()) {
             return new ShipmentResult(success: false);
@@ -148,7 +173,13 @@ class ShiprocketDriver implements ShippingDriverInterface
             return new TrackingResult(status: null);
         }
 
-        $response = Http::withToken($token)->get("https://apiv2.shiprocket.in/v1/external/courier/track/awb/{$awbNumber}");
+        try {
+            $response = Http::withToken($token)->get("https://apiv2.shiprocket.in/v1/external/courier/track/awb/{$awbNumber}");
+        } catch (\Throwable $e) {
+            Log::error('Shiprocket tracking lookup failed', ['awb_number' => $awbNumber, 'message' => $e->getMessage()]);
+
+            return new TrackingResult(status: null);
+        }
 
         if (! $response->successful()) {
             return new TrackingResult(status: null);
@@ -173,9 +204,15 @@ class ShiprocketDriver implements ShippingDriverInterface
             return false;
         }
 
-        $response = Http::withToken($token)->post('https://apiv2.shiprocket.in/v1/external/orders/cancel', [
-            'ids' => [$shipmentId],
-        ]);
+        try {
+            $response = Http::withToken($token)->post('https://apiv2.shiprocket.in/v1/external/orders/cancel', [
+                'ids' => [$shipmentId],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Shiprocket shipment cancellation failed', ['shipment_id' => $shipmentId, 'message' => $e->getMessage()]);
+
+            return false;
+        }
 
         return $response->successful();
     }
@@ -188,9 +225,15 @@ class ShiprocketDriver implements ShippingDriverInterface
             return null;
         }
 
-        $response = Http::withToken($token)->post('https://apiv2.shiprocket.in/v1/external/courier/generate/label', [
-            'shipment_id' => [$shipmentId],
-        ]);
+        try {
+            $response = Http::withToken($token)->post('https://apiv2.shiprocket.in/v1/external/courier/generate/label', [
+                'shipment_id' => [$shipmentId],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Shiprocket label generation failed', ['shipment_id' => $shipmentId, 'message' => $e->getMessage()]);
+
+            return null;
+        }
 
         return $response->successful() ? $response->json('label_url') : null;
     }

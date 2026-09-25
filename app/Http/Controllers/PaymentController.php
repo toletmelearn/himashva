@@ -7,6 +7,7 @@ use App\Models\Payment;
 use App\Services\CartService;
 use App\Services\Payment\PaymentGatewayManager;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 
 class PaymentController extends Controller
@@ -24,7 +25,13 @@ class PaymentController extends Controller
             return response()->json(['error' => 'Razorpay is not configured.'], 422);
         }
 
-        $payload = $this->gateways->driver('razorpay')->createOrder($order, $gateway);
+        try {
+            $payload = $this->gateways->driver('razorpay')->createOrder($order, $gateway);
+        } catch (\Throwable $e) {
+            Log::error('Razorpay order creation failed', ['order_id' => $order->id, 'message' => $e->getMessage()]);
+
+            return response()->json(['error' => 'Unable to start payment right now. Please try again shortly.'], 502);
+        }
 
         return response()->json($payload);
     }

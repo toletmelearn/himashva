@@ -9,6 +9,7 @@ use App\Services\Payment\DTOs\PaymentResult;
 use App\Services\Payment\DTOs\RefundResult;
 use App\Services\Payment\PaymentGatewayInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Razorpay\Api\Api;
 
 class RazorpayDriver implements PaymentGatewayInterface
@@ -67,6 +68,8 @@ class RazorpayDriver implements PaymentGatewayInterface
                 'razorpay_signature' => $data['razorpay_signature'],
             ]);
         } catch (\Exception $e) {
+            Log::error('Razorpay payment verification failed', ['order_id' => $order->id, 'message' => $e->getMessage()]);
+
             return new PaymentResult(
                 success: false,
                 transactionId: null,
@@ -100,6 +103,8 @@ class RazorpayDriver implements PaymentGatewayInterface
                 rawResponse: is_array($refund) ? $refund : (array) $refund,
             );
         } catch (\Exception $e) {
+            Log::error('Razorpay refund failed', ['payment_id' => $payment->id, 'message' => $e->getMessage()]);
+
             return new RefundResult(success: false, refundId: null, amount: $amount, rawResponse: ['error' => $e->getMessage()]);
         }
     }
