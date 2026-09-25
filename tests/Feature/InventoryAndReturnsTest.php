@@ -231,6 +231,17 @@ class InventoryAndReturnsTest extends TestCase
         ])->assertForbidden();
     }
 
+    public function test_customer_cannot_request_return_for_non_delivered_order(): void
+    {
+        $user = User::factory()->create();
+        $order = Order::factory()->create(['user_id' => $user->id, 'order_status' => 'processing', 'delivered_at' => null]);
+
+        $this->actingAs($user)->post("/account/orders/{$order->order_number}/return", [
+            'reason_category' => 'defective',
+            'items' => [],
+        ])->assertForbidden();
+    }
+
     public function test_return_received_by_admin_restocks_inventory(): void
     {
         $category = Category::factory()->create();
@@ -263,6 +274,43 @@ class InventoryAndReturnsTest extends TestCase
             'product_id' => $product->id,
             'type' => 'return',
             'quantity_delta' => 2,
+            'reference_type' => ReturnRequest::class,
+            'reference_id' => $return->id,
+        ]);
+    }
+
+    public function test_partial_return_received_by_admin_restocks_only_the_returned_quantity(): void
+    {
+        $category = Category::factory()->create();
+        $product = Product::factory()->create(['category_id' => $category->id, 'stock' => 5]);
+        $user = User::factory()->create();
+
+        $order = Order::factory()->create(['user_id' => $user->id, 'order_status' => 'delivered', 'delivered_at' => now()->subDay()]);
+        $orderItem = $order->items()->create([
+            'product_id' => $product->id,
+            'product_name' => $product->name,
+            'sku' => $product->sku,
+            'unit_price' => $product->price,
+            'quantity' => 3,
+            'line_total' => $product->price * 3,
+        ]);
+
+        $return = ReturnRequest::factory()->create(['order_id' => $order->id, 'user_id' => $user->id, 'status' => 'approved']);
+        $return->items()->create(['order_item_id' => $orderItem->id, 'quantity' => 1, 'condition' => 'unopened']);
+
+        Livewire::actingAs($this->admin())
+            ->test(EditReturn::class, ['record' => $return->id])
+            ->fillForm(['status' => 'received'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $product->refresh();
+        $this->assertEquals(6, $product->stock);
+
+        $this->assertDatabaseHas('inventory_movements', [
+            'product_id' => $product->id,
+            'type' => 'return',
+            'quantity_delta' => 1,
             'reference_type' => ReturnRequest::class,
             'reference_id' => $return->id,
         ]);

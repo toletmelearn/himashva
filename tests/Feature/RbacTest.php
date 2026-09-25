@@ -75,6 +75,18 @@ class RbacTest extends TestCase
             ->assertOk();
     }
 
+    public function test_super_admin_role_has_full_access(): void
+    {
+        $superAdmin = User::factory()->create(['is_admin' => false]);
+        $superAdmin->assignRole('super_admin');
+
+        $this->actingAs($superAdmin)->get('/admin/users')->assertOk();
+        $this->actingAs($superAdmin)->get('/admin/products')->assertOk();
+        $this->actingAs($superAdmin)->get('/admin/audit-logs')->assertOk();
+        $this->actingAs($superAdmin)->get('/admin/payment-gateways')->assertOk();
+        $this->actingAs($superAdmin)->get('/admin/shipping-providers')->assertOk();
+    }
+
     public function test_legacy_is_admin_user_retains_full_access_without_roles(): void
     {
         $legacyAdmin = User::factory()->create(['is_admin' => true]);
