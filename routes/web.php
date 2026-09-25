@@ -22,6 +22,8 @@ use App\Http\Controllers\ShippingController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\WishlistController;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 // Public storefront
@@ -41,7 +43,7 @@ Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
 Route::patch('/cart/update/{id}', [CartController::class, 'update'])->name('cart.update');
 Route::delete('/cart/remove/{id}', [CartController::class, 'remove'])->name('cart.remove');
-Route::post('/cart/apply-coupon', [CartController::class, 'applyCoupon'])->name('cart.applyCoupon');
+Route::post('/cart/apply-coupon', [CartController::class, 'applyCoupon'])->middleware('throttle:20,1')->name('cart.applyCoupon');
 Route::post('/cart/remove-coupon', [CartController::class, 'removeCoupon'])->name('cart.removeCoupon');
 Route::post('/cart/dismiss-coupon', [CartController::class, 'dismissCoupon'])->name('cart.dismissCoupon');
 
@@ -53,7 +55,7 @@ Route::post('/reviews/{review}/vote', [ReviewVoteController::class, 'store'])->n
 
 // Checkout
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
-Route::post('/checkout/place-order', [CheckoutController::class, 'placeOrder'])->name('checkout.placeOrder');
+Route::post('/checkout/place-order', [CheckoutController::class, 'placeOrder'])->middleware('throttle:10,1')->name('checkout.placeOrder');
 Route::post('/checkout/save-email', [CheckoutController::class, 'saveEmail'])->name('checkout.saveEmail');
 Route::get('/order/success/{orderNumber}', [CheckoutController::class, 'success'])->name('order.success');
 Route::post('/guest/create-account', [GuestAccountController::class, 'store'])->middleware('throttle:10,1')->name('guest.create-account');
@@ -74,13 +76,36 @@ Route::get('/contact', [ContactController::class, 'show'])->name('contact.show')
 Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
 
 // Chatbot
-Route::post('/chatbot/message', [ChatbotController::class, 'respond'])->name('chatbot.respond');
+Route::post('/chatbot/message', [ChatbotController::class, 'respond'])->middleware('throttle:30,1')->name('chatbot.respond');
 
 // Static pages
 Route::get('/page/{slug}', [PageController::class, 'show'])->name('page.show');
 
 // Pincode check
 Route::post('/check-pincode', [ShippingController::class, 'checkPincode'])->name('check.pincode');
+
+// Health check (uptime monitors, load balancers)
+Route::get('/health', function () {
+    $checks = ['database' => false, 'cache' => false];
+
+    try {
+        DB::connection()->getPdo();
+        $checks['database'] = true;
+    } catch (Throwable $e) {
+        //
+    }
+
+    try {
+        Cache::put('health_check', true, 5);
+        $checks['cache'] = Cache::get('health_check') === true;
+    } catch (Throwable $e) {
+        //
+    }
+
+    $healthy = ! in_array(false, $checks, true);
+
+    return response()->json(['status' => $healthy ? 'ok' : 'degraded', 'checks' => $checks], $healthy ? 200 : 503);
+})->name('health');
 
 // Compare
 Route::post('/compare/add/{product}', [CompareController::class, 'add'])->name('compare.add');
