@@ -36,6 +36,11 @@ class UserResource extends Resource
         return parent::getEloquentQuery()->where('is_admin', false);
     }
 
+    public static function getNavigationBadge(): ?string
+    {
+        return (string) static::getModel()::where('is_admin', false)->count();
+    }
+
     public static function form(Form $form): Form
     {
         return $form
