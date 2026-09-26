@@ -259,6 +259,8 @@
         .footer-social-mock { display: flex; gap: 10px; }
         .footer-social-mock a { width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,0.15); border-radius: 50%; color: #B5A898; font-size: 14px; transition: all 0.2s; }
         .footer-social-mock a:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .footer-social-icon { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.75); transition: background 0.2s ease, color 0.2s ease; text-decoration: none; }
+        .footer-social-icon:hover { background: rgba(255, 255, 255, 0.25); color: #ffffff; }
         .footer-col-mock h4 { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
         .footer-col-mock a { display: block; font-size: 13px; color: #B5A898; padding: 4px 0; transition: color 0.2s; }
         .footer-col-mock a:hover { color: #fff; }

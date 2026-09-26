@@ -16,7 +16,7 @@
             <a href="{{ route('track.form') }}" class="hover-line">Track Order</a>
             <a href="{{ route('contact.show') }}" class="hover-line">Contact</a>
         </div>
-        <div class="top-bar-links">
+        <div class="top-bar-links top-bar-social hidden md:flex items-center gap-2">
             <span>Minimum order value ₹{{ number_format(settings('min_order_amount', 499)) }}</span>
         </div>
     </div>
