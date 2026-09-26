@@ -3,9 +3,60 @@
     $cartCount = app(\App\Services\CartService::class)->getCount();
 @endphp
 
+<div class="overflow-hidden py-3.5 bg-brand-800 text-brand-200">
+    <div class="marquee-animate flex gap-16 whitespace-nowrap" style="width: max-content;">
+        @for ($i = 0; $i < 2; $i++)
+            <span class="text-xs tracking-[0.25em] uppercase">🕯️ Handcrafted With Love</span>
+            <span class="text-xs tracking-[0.25em] uppercase opacity-50">✦</span>
+            <span class="text-xs tracking-[0.25em] uppercase">100% Natural Soy Wax</span>
+            <span class="text-xs tracking-[0.25em] uppercase opacity-50">✦</span>
+            <span class="text-xs tracking-[0.25em] uppercase">🌿 Eco-Friendly Packaging</span>
+            <span class="text-xs tracking-[0.25em] uppercase opacity-50">✦</span>
+            <span class="text-xs tracking-[0.25em] uppercase">Free Shipping ₹{{ number_format(settings('free_shipping_threshold', 999)) }}+</span>
+            <span class="text-xs tracking-[0.25em] uppercase opacity-50">✦</span>
+            <span class="text-xs tracking-[0.25em] uppercase">🎁 Gift Ready Packaging</span>
+            <span class="text-xs tracking-[0.25em] uppercase opacity-50">✦</span>
+            <span class="text-xs tracking-[0.25em] uppercase">Pan-India Delivery</span>
+            <span class="text-xs tracking-[0.25em] uppercase opacity-50">✦</span>
+        @endfor
+    </div>
+</div>
+
 @if (settings('announcement_text'))
 <div class="announcement-bar">
-    <span>{{ settings('announcement_text') }}</span>
+    <div class="announcement-bar-social">
+        @if (settings('social_instagram') && settings('social_instagram') !== '#')
+            <a href="{{ settings('social_instagram') }}" aria-label="Instagram" class="footer-social-icon announcement-social-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/></svg>
+            </a>
+        @endif
+        @if (settings('social_facebook') && settings('social_facebook') !== '#')
+            <a href="{{ settings('social_facebook') }}" aria-label="Facebook" class="footer-social-icon announcement-social-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+            </a>
+        @endif
+        @if (settings('social_youtube') && settings('social_youtube') !== '#')
+            <a href="{{ settings('social_youtube') }}" aria-label="YouTube" class="footer-social-icon announcement-social-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 7s-.3-2-1.2-2.7c-1.1-1.2-2.4-1.2-3-1.3C16.6 3 12 3 12 3s-4.6 0-6.8.1C4.6 4 3.3 4 2.2 5.3 1.3 6 1 8 1 8S.7 10.2.7 12.4v2.1C.7 16.7 1 18.8 1 18.8s.3 2 1.2 2.7c1.1 1.2 2.6 1.1 3.3 1.2C7.6 22.9 12 23 12 23s4.6 0 6.8-.3c.6-.1 1.9-.1 3-1.3.9-.7 1.2-2.7 1.2-2.7S23 16.6 23 14.4v-2.1C23 10.2 23 7 23 7zM9.7 15.5V8.4l6.6 3.6-6.6 3.5z"/></svg>
+            </a>
+        @endif
+        @if (settings('social_twitter') && settings('social_twitter') !== '#')
+            <a href="{{ settings('social_twitter') }}" aria-label="X (Twitter)" class="footer-social-icon announcement-social-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+        @endif
+        @if (settings('social_pinterest') && settings('social_pinterest') !== '#')
+            <a href="{{ settings('social_pinterest') }}" aria-label="Pinterest" class="footer-social-icon announcement-social-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.4 0 0 5.4 0 12c0 5.1 3.2 9.4 7.6 11.2-.1-.9-.2-2.4 0-3.4.2-.9 1.4-6 1.4-6s-.4-.7-.4-1.8c0-1.7 1-2.9 2.2-2.9 1 0 1.5.8 1.5 1.7 0 1-.7 2.6-1 4 .3 1.2 1.2 2.2 1.8 2.2 2.1 0 3.8-2.2 3.8-5.5 0-2.9-2.1-4.9-5-4.9-3.4 0-5.4 2.6-5.4 5.2 0 1 .4 2.1.9 2.7.1.1.1.3.1.3l-.3 1.4c-.1.2-.2.3-.4.2-1.5-.7-2.4-2.9-2.4-4.6 0-3.8 2.7-7.3 7.9-7.3 4.1 0 7.4 2.9 7.4 6.9 0 4.1-2.6 7.5-6.2 7.5-1.2 0-2.4-.6-2.8-1.4l-.7 2.8c-.3 1-.9 2.3-1.5 3.1.9.3 1.9.5 2.9.5 6.6 0 12-5.4 12-12S18.6 0 12 0z"/></svg>
+            </a>
+        @endif
+        @if (settings('social_linkedin') && settings('social_linkedin') !== '#')
+            <a href="{{ settings('social_linkedin') }}" aria-label="LinkedIn" class="footer-social-icon announcement-social-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+            </a>
+        @endif
+    </div>
+    <span class="announcement-bar-text">{{ settings('announcement_text') }}</span>
 </div>
 @endif
 

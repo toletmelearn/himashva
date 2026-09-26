@@ -86,9 +86,12 @@
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
         /* Announcement + top bar */
-        .announcement-bar { background: var(--accent); color: #fff; text-align: center; padding: 8px 16px; font-size: 12px; font-weight: 500; letter-spacing: 0.5px; }
+        .announcement-bar { background: var(--accent); color: #fff; display: flex; align-items: center; gap: 12px; padding: 8px 16px; font-size: 12px; font-weight: 500; letter-spacing: 0.5px; }
         .announcement-bar span { opacity: 0.85; }
         .announcement-bar strong { font-weight: 600; }
+        .announcement-bar-social { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .announcement-social-icon { width: 28px; height: 28px; }
+        .announcement-bar-text { flex: 1; text-align: center; }
         .top-bar { background: var(--bg); border-bottom: 1px solid var(--border-light); padding: 6px 0; font-size: 12px; color: var(--text-muted); }
         .top-bar .container { display: flex; justify-content: space-between; align-items: center; }
         .top-bar-links { display: flex; gap: 16px; }

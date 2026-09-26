@@ -88,25 +88,6 @@
     @endif
 </section>
 
-<div class="overflow-hidden py-3.5 bg-brand-800 text-brand-200">
-    <div class="marquee-animate flex gap-16 whitespace-nowrap" style="width: max-content;">
-        @for ($i = 0; $i < 2; $i++)
-            <span class="text-xs tracking-[0.25em] uppercase">🕯️ Handcrafted With Love</span>
-            <span class="text-xs tracking-[0.25em] uppercase opacity-50">✦</span>
-            <span class="text-xs tracking-[0.25em] uppercase">100% Natural Soy Wax</span>
-            <span class="text-xs tracking-[0.25em] uppercase opacity-50">✦</span>
-            <span class="text-xs tracking-[0.25em] uppercase">🌿 Eco-Friendly Packaging</span>
-            <span class="text-xs tracking-[0.25em] uppercase opacity-50">✦</span>
-            <span class="text-xs tracking-[0.25em] uppercase">Free Shipping ₹{{ number_format(settings('free_shipping_threshold', 999)) }}+</span>
-            <span class="text-xs tracking-[0.25em] uppercase opacity-50">✦</span>
-            <span class="text-xs tracking-[0.25em] uppercase">🎁 Gift Ready Packaging</span>
-            <span class="text-xs tracking-[0.25em] uppercase opacity-50">✦</span>
-            <span class="text-xs tracking-[0.25em] uppercase">Pan-India Delivery</span>
-            <span class="text-xs tracking-[0.25em] uppercase opacity-50">✦</span>
-        @endfor
-    </div>
-</div>
-
 <div class="usp-bar-mock">
     <div class="container">
         <div class="usp-grid-mock">
