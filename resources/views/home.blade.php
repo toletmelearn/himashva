@@ -3,12 +3,15 @@
 
 <x-json-ld type="organization" />
 
-@if ($heroBanners->count())
-<section x-data="{ i: 0, count: {{ $heroBanners->count() }} }" x-init="setInterval(() => i = (i + 1) % count, 5000)" class="hero-mock">
+@php
+    $heroSlideCount = $heroBanners->count() ?: 1;
+@endphp
+<section x-data="{ i: 0, count: {{ $heroSlideCount }} }" x-init="count > 1 && setInterval(() => i = (i + 1) % count, 5000)" class="hero-mock">
     <div class="hero-bg-pattern"></div>
-    @foreach ($heroBanners as $index => $banner)
+    @forelse ($heroBanners as $index => $banner)
         <div x-show="i === {{ $index }}" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
             class="container">
+            <a href="{{ $banner->link ?: route('shop') }}" class="hero-slide-link" aria-hidden="true" tabindex="-1"></a>
             <div class="hero-content">
                 <h1 data-aos="fade-up">{{ $banner->title }}</h1>
                 @if ($banner->subtitle)
@@ -47,9 +50,43 @@
                 @endif
             </div>
         </div>
-    @endforeach
+    @empty
+        <div x-show="i === 0" class="container">
+            <a href="{{ route('shop') }}" class="hero-slide-link" aria-hidden="true" tabindex="-1"></a>
+            <div class="hero-content">
+                <h1 data-aos="fade-up">Handcrafted Candles, Made With Love</h1>
+                <p data-aos="fade-up" data-aos-delay="120">100% natural soy wax, subtle scents, and clean burns for beautiful spaces.</p>
+                <div data-aos="fade-up" data-aos-delay="240" style="display:flex; gap:12px; flex-wrap:wrap;">
+                    <a href="{{ route('shop') }}" class="btn-primary">Shop Collection</a>
+                    <a href="{{ route('page.show', 'about-us') }}" class="btn-outline">Our Story</a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-glow" aria-hidden="true"></div>
+                <div class="hero-candle-grid float">
+                    <div class="candle-placeholder">🕯️<br><small>Handcrafted</small></div>
+                    <div class="candle-placeholder">🕯️<br><small>Natural Soy Wax</small></div>
+                    <div class="candle-placeholder">🕯️<br><small>Gift Ready</small></div>
+                    <div class="candle-placeholder">🕯️<br><small>{{ settings('site_name', 'Himashva') }}</small></div>
+                </div>
+            </div>
+        </div>
+    @endforelse
+
+    @if ($heroBanners->count() > 1)
+        <button type="button" class="hero-arrow hero-arrow-prev" aria-label="Previous slide" @click="i = (i - 1 + count) % count">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button type="button" class="hero-arrow hero-arrow-next" aria-label="Next slide" @click="i = (i + 1) % count">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <div class="hero-dots" role="tablist" aria-label="Hero slides">
+            @foreach ($heroBanners as $index => $banner)
+                <button type="button" class="hero-dot" :class="{ 'active': i === {{ $index }} }" @click="i = {{ $index }}" aria-label="Go to slide {{ $index + 1 }}"></button>
+            @endforeach
+        </div>
+    @endif
 </section>
-@endif
 
 <div class="overflow-hidden py-3.5 bg-brand-800 text-brand-200">
     <div class="marquee-animate flex gap-16 whitespace-nowrap" style="width: max-content;">

@@ -3,14 +3,11 @@
     $cartCount = app(\App\Services\CartService::class)->getCount();
 @endphp
 
+@if (settings('announcement_text'))
 <div class="announcement-bar">
-    <span>Welcome To {{ settings('site_name', 'Himashva') }}</span>
-    @if (settings('announcement_text'))
-        &nbsp;·&nbsp; <strong>{{ settings('announcement_text') }}</strong>
-    @else
-        &nbsp;·&nbsp; <strong>Free Shipping on Orders Over ₹{{ number_format(settings('free_shipping_threshold', 999)) }}</strong>
-    @endif
+    <span>{{ settings('announcement_text') }}</span>
 </div>
+@endif
 
 <div class="top-bar">
     <div class="container">

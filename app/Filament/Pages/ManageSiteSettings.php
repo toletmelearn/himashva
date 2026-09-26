@@ -3,12 +3,14 @@
 namespace App\Filament\Pages;
 
 use App\Models\SiteSetting;
+use Filament\Actions;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Support\Facades\Artisan;
 
 class ManageSiteSettings extends Page implements HasForms
 {
@@ -29,6 +31,20 @@ class ManageSiteSettings extends Page implements HasForms
         $this->form->fill(SiteSetting::query()->pluck('value', 'key')->toArray());
     }
 
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\Action::make('regenerate_sitemap')
+                ->label('Regenerate Sitemap')
+                ->icon('heroicon-o-globe-alt')
+                ->action(function () {
+                    Artisan::call('himashva:generate-sitemap');
+
+                    Notification::make()->title('Sitemap regenerated!')->success()->send();
+                }),
+        ];
+    }
+
     public function form(Form $form): Form
     {
         return $form
@@ -47,12 +63,20 @@ class ManageSiteSettings extends Page implements HasForms
                                 Forms\Components\TextInput::make('whatsapp_number'),
                                 Forms\Components\TextInput::make('announcement_text'),
                             ]),
-                        Forms\Components\Tabs\Tab::make('Social')
+                        Forms\Components\Tabs\Tab::make('Social Media')
                             ->schema([
-                                Forms\Components\TextInput::make('social_instagram'),
-                                Forms\Components\TextInput::make('social_facebook'),
-                                Forms\Components\TextInput::make('social_pinterest'),
-                                Forms\Components\TextInput::make('social_youtube'),
+                                Forms\Components\TextInput::make('social_instagram')
+                                    ->url()
+                                    ->placeholder('https://instagram.com/yourhandle'),
+                                Forms\Components\TextInput::make('social_facebook')
+                                    ->url()
+                                    ->placeholder('https://facebook.com/yourpage'),
+                                Forms\Components\TextInput::make('social_pinterest')
+                                    ->url()
+                                    ->placeholder('https://pinterest.com/yourhandle'),
+                                Forms\Components\TextInput::make('social_youtube')
+                                    ->url()
+                                    ->placeholder('https://youtube.com/@yourchannel'),
                                 Forms\Components\TextInput::make('social_twitter'),
                                 Forms\Components\TextInput::make('social_linkedin'),
                             ]),

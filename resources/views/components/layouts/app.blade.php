@@ -124,6 +124,16 @@
         .hero-mock { position: relative; background: linear-gradient(135deg, #F5EDE2 0%, #E8D9C5 50%, #D4BFA6 100%); overflow: hidden; min-height: 480px; display: flex; align-items: center; }
         .hero-bg-pattern { position: absolute; inset: 0; opacity: 0.06; background-image: radial-gradient(circle at 20% 50%, #8B5E3C 1px, transparent 1px), radial-gradient(circle at 80% 20%, #8B5E3C 1px, transparent 1px); background-size: 60px 60px; }
         .hero-mock .container { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; padding-block: 60px; position: relative; z-index: 1; }
+        .hero-slide-link { position: absolute; inset: 0; z-index: 0; }
+        .hero-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.85); display: grid; place-items: center; color: var(--text-primary); box-shadow: var(--shadow-lg); transition: background 0.2s; }
+        .hero-arrow:hover { background: #fff; }
+        .hero-arrow svg { width: 20px; height: 20px; }
+        .hero-arrow-prev { left: 20px; }
+        .hero-arrow-next { right: 20px; }
+        .hero-dots { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 2; display: flex; gap: 8px; }
+        .hero-dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(139,94,60,0.35); transition: background 0.2s, transform 0.2s; }
+        .hero-dot.active { background: var(--accent); transform: scale(1.2); }
+        @media (max-width: 768px) { .hero-arrow { display: none; } }
         .hero-content h1 { font-family: var(--font-display); font-size: clamp(36px, 5vw, 52px); font-weight: 500; line-height: 1.15; color: var(--text-primary); margin-bottom: 16px; }
         .hero-content p { font-size: 15px; color: var(--text-secondary); max-width: 420px; margin-bottom: 28px; line-height: 1.7; }
         .btn-primary { display: inline-flex; align-items: center; gap: 8px; padding: 14px 32px; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; border-radius: var(--radius-sm); transition: background 0.2s, transform 0.1s; }
